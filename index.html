@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>雙賣平衡 即時績效 (歐大專業版) - V1.9.1</title>
+    <title>雙賣平衡 即時績效 (歐大專業版) - V1.9.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -108,7 +108,7 @@
             <div class="text-center px-2">
                 <h1 class="text-xl sm:text-3xl md:text-4xl font-black text-slate-800 tracking-tighter mb-0.5 sm:mb-1">雙賣平衡 即時績效</h1>
                 <div class="flex items-center justify-center gap-2">
-                    <span class="text-[10px] sm:text-[12px] font-bold text-slate-400 uppercase tracking-widest">專業版 V1.9.1</span>
+                    <span class="text-[10px] sm:text-[12px] font-bold text-slate-400 uppercase tracking-widest">專業版 V1.9.2</span>
                     <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-50 text-[9px] sm:text-[10px] font-bold text-emerald-600 live-indicator">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> LIVE
                     </span>
@@ -147,10 +147,12 @@
             <div class="glass-card py-1.5 px-2 border-l-4 border-l-red-500 flex flex-col justify-center min-h-[48px] sm:min-h-[50px]">
                 <p class="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase leading-tight">週三時價 (BA)</p>
                 <p id="stat-time-wed" class="text-base sm:text-lg font-black stat-value text-red-600 leading-none">--</p>
+                <p id="stat-wed-chg" class="text-[9px] sm:text-[10px] font-bold leading-none mt-0.5 text-slate-400"></p>
             </div>
             <div class="glass-card py-1.5 px-2 border-l-4 border-l-green-500 flex flex-col justify-center min-h-[48px] sm:min-h-[50px]">
                 <p class="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase leading-tight">週五時價 (BB)</p>
                 <p id="stat-time-fri" class="text-base sm:text-lg font-black stat-value text-green-600 leading-none">--</p>
+                <p id="stat-fri-chg" class="text-[9px] sm:text-[10px] font-bold leading-none mt-0.5 text-slate-400"></p>
             </div>
             <div class="glass-card py-1.5 px-2 border-l-4 border-l-indigo-500 flex flex-col justify-center min-h-[48px] sm:min-h-[50px]">
                 <p class="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase leading-tight">進場時間點</p>
@@ -578,6 +580,25 @@
             perfEl.className = `text-base sm:text-lg font-black stat-value ${sessionPerf >= 0 ? 'text-rose-600' : 'text-emerald-600'}`;
             document.getElementById('stat-time-wed').innerText = sw.length > 0 ? Math.round(sw[sw.length - 1]).toLocaleString() : "--";
             document.getElementById('stat-time-fri').innerText = sf.length > 0 ? Math.round(sf[sf.length - 1]).toLocaleString() : "--";
+
+            // 計算當盤漲跌 & 漲跌幅
+            function calcChg(arr) {
+                const vals = arr.filter(v => v !== null && v !== 0);
+                if (vals.length < 2) return null;
+                const first = vals[0], last = vals[vals.length - 1];
+                const chg = last - first;
+                const pct = first !== 0 ? (chg / first * 100) : 0;
+                return { chg, pct };
+            }
+            function renderChg(elId, result) {
+                const el = document.getElementById(elId);
+                if (!result) { el.innerText = ''; return; }
+                const sign = result.chg >= 0 ? '+' : '';
+                el.innerText = `${sign}${Math.round(result.chg).toLocaleString()}（${sign}${result.pct.toFixed(2)}%）`;
+                el.className = `text-[9px] sm:text-[10px] font-bold leading-none mt-0.5 ${result.chg >= 0 ? 'text-rose-500' : 'text-emerald-500'}`;
+            }
+            renderChg('stat-wed-chg', calcChg(globalData.yTimeWed.slice(si, ei + 1)));
+            renderChg('stat-fri-chg', calcChg(globalData.yTimeFri.slice(si, ei + 1)));
             
             let entry = "--", exit = "--";
             for(let i=0; i<stRaw.length; i++) { if(stRaw[i] !== 0 && stRaw[i] !== null) { entry = sx[i].split(' ')[1] || sx[i]; break; } }
