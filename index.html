@@ -201,7 +201,9 @@
     <script>
         const SHEET_ID = '1AsY4_MJipaMp_cNLpyeXTpFGnG0FD4vWJu-SDRdvtME';
         const GID = '1823639969';
-        const CSV_URL = `/api/sheet`;
+        const CSV_URL = location.hostname.includes('github.io')
+            ? `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`
+            : '/api/sheet';
         
         let myChart = null;
         let globalData = null;
