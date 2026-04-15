@@ -202,7 +202,7 @@
         </div>
 
         <!-- 頁尾版本資訊 -->
-        <footer class="glass-card px-4 py-2 flex flex-col sm:flex-row items-center justify-between gap-1">
+        <footer class="glass-card px-4 py-2 flex flex-col sm:flex-row items-center justify-between gap-2">
             <div class="flex flex-col items-center sm:items-start gap-0.5">
                 <p class="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">示範帳戶 · 即時績效系統</p>
                 <div class="flex items-center gap-2">
@@ -210,6 +210,21 @@
                     <span id="footer-deploy-time" class="text-[9px] text-slate-400"></span>
                 </div>
             </div>
+
+            <!-- 訪客人數 -->
+            <div class="flex items-center gap-3 px-3 py-1 bg-slate-50 rounded-lg border border-slate-100">
+                <div class="flex items-center gap-1.5">
+                    <i data-lucide="users" class="w-3 h-3 text-slate-400"></i>
+                    <span class="text-[9px] font-black text-slate-400 uppercase">今日</span>
+                    <span id="visit-today" class="text-[11px] font-black text-blue-600">--</span>
+                </div>
+                <div class="w-px h-3 bg-slate-200"></div>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[9px] font-black text-slate-400 uppercase">累計</span>
+                    <span id="visit-total" class="text-[11px] font-black text-slate-600">--</span>
+                </div>
+            </div>
+
             <div class="flex flex-wrap justify-center sm:justify-end gap-x-4 gap-y-1">
                 <a href="https://www.joption.org/" target="_blank" class="text-[9px] text-slate-400 hover:text-blue-500 transition-colors">🌐 joption.org</a>
                 <a href="https://joption-tw.github.io/demo-performance/" target="_blank" class="text-[9px] text-slate-400 hover:text-blue-500 transition-colors">GitHub (demo)</a>
@@ -777,10 +792,26 @@
             }
         }
 
+        // ── 訪客人數（只在 Vercel 上計數）────────────────────────────
+        async function fetchVisits() {
+            // GitHub Pages 不支援 API，略過
+            if (location.hostname.includes('github.io')) return;
+            try {
+                const res = await fetch('/api/visits');
+                if (!res.ok) return;
+                const data = await res.json();
+                const todayEl = document.getElementById('visit-today');
+                const totalEl = document.getElementById('visit-total');
+                if (todayEl) todayEl.innerText = (data.today ?? 0).toLocaleString();
+                if (totalEl) totalEl.innerText = (data.total ?? 0).toLocaleString();
+            } catch (e) { /* 靜默失敗 */ }
+        }
+
         window.onload = () => {
             if (typeof lucide !== 'undefined') lucide.createIcons();
             fetchData();
             fetchVersionInfo();
+            fetchVisits();
             document.getElementById('refresh-btn').onclick = fetchData;
             window.addEventListener('resize', () => { if(myChart) myChart.resize(); updateChartUI(); });
         };
