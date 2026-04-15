@@ -792,12 +792,14 @@
             }
         }
 
-        // ── 訪客人數（只在 Vercel 上計數）────────────────────────────
+        // ── 訪客人數（三個網站共用同一計數器）──────────────────────
         async function fetchVisits() {
-            // GitHub Pages 不支援 API，略過
-            if (location.hostname.includes('github.io')) return;
+            // GitHub Pages 用絕對網址呼叫 Vercel API；Vercel 用相對路徑
+            const apiUrl = location.hostname.includes('github.io')
+                ? 'https://www.joption.org/api/visits'
+                : '/api/visits';
             try {
-                const res = await fetch('/api/visits');
+                const res = await fetch(apiUrl);
                 if (!res.ok) return;
                 const data = await res.json();
                 const todayEl = document.getElementById('visit-today');
