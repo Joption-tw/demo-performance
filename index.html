@@ -107,8 +107,12 @@
 
             <div class="text-center px-2">
                 <h1 class="text-xl sm:text-3xl md:text-4xl font-black text-slate-800 tracking-tighter mb-0.5 sm:mb-1">雙賣平衡 即時績效</h1>
-                <div class="flex items-center justify-center gap-2">
-                    <span class="text-[10px] sm:text-[12px] font-bold text-slate-400 uppercase tracking-widest">專業版 V1.9.6</span>
+                <div class="flex items-center justify-center gap-2 flex-wrap">
+                    <span class="text-[10px] sm:text-[12px] font-bold text-slate-400 uppercase tracking-widest">示範帳戶</span>
+                    <span id="version-badge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-[9px] sm:text-[10px] font-black text-slate-500 cursor-pointer hover:bg-slate-200 transition-colors" title="點擊查看更新紀錄">
+                        <i data-lucide="clock" class="w-3 h-3"></i>
+                        <span id="version-tag">載入中…</span>
+                    </span>
                     <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-50 text-[9px] sm:text-[10px] font-bold text-emerald-600 live-indicator">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> LIVE
                     </span>
@@ -196,6 +200,22 @@
             
             <div id="performance-chart"></div>
         </div>
+
+        <!-- 頁尾版本資訊 -->
+        <footer class="glass-card px-4 py-2 flex flex-col sm:flex-row items-center justify-between gap-1">
+            <div class="flex flex-col items-center sm:items-start gap-0.5">
+                <p class="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">示範帳戶 · 即時績效系統</p>
+                <div class="flex items-center gap-2">
+                    <span id="footer-commit" class="text-[9px] font-mono text-slate-400">版本載入中…</span>
+                    <span id="footer-deploy-time" class="text-[9px] text-slate-400"></span>
+                </div>
+            </div>
+            <div class="flex flex-wrap justify-center sm:justify-end gap-x-4 gap-y-1">
+                <a href="https://www.joption.org/" target="_blank" class="text-[9px] text-slate-400 hover:text-blue-500 transition-colors">🌐 joption.org</a>
+                <a href="https://joption-tw.github.io/demo-performance/" target="_blank" class="text-[9px] text-slate-400 hover:text-blue-500 transition-colors">GitHub (demo)</a>
+                <a href="https://joption-tw.github.io/sample/" target="_blank" class="text-[9px] text-slate-400 hover:text-blue-500 transition-colors">GitHub (sample)</a>
+            </div>
+        </footer>
     </div>
 
     <script>
@@ -718,11 +738,51 @@
             myChart.setOption(opt);
             updateChartUI();
         }
-        window.onload = () => { 
-            if (typeof lucide !== 'undefined') lucide.createIcons(); 
-            fetchData(); 
-            document.getElementById('refresh-btn').onclick = fetchData; 
-            window.addEventListener('resize', () => { if(myChart) myChart.resize(); updateChartUI(); }); 
+        // ── 版本資訊（自動從 GitHub 抓最新 commit）────────────────────
+        async function fetchVersionInfo() {
+            try {
+                const res = await fetch('https://api.github.com/repos/Joption-tw/demo-performance/commits/main', {
+                    headers: { 'Accept': 'application/vnd.github.v3+json' }
+                });
+                if (!res.ok) throw new Error('API failed');
+                const data = await res.json();
+                const sha = data.sha.substring(0, 7);
+                const msgFull = data.commit.message.split('\n')[0];
+                const date = new Date(data.commit.committer.date);
+                const pad = n => n.toString().padStart(2, '0');
+                const fmtDate = `${date.getFullYear()}/${pad(date.getMonth()+1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+                const commitUrl = `https://github.com/Joption-tw/demo-performance/commit/${data.sha}`;
+
+                // 標題區版本 badge：顯示「更新 04/15 14:30」
+                const badge = document.getElementById('version-badge');
+                const tag   = document.getElementById('version-tag');
+                const shortDate = `更新 ${pad(date.getMonth()+1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+                if (tag) tag.innerText = shortDate;
+                if (badge) {
+                    badge.title = `最後更新：${fmtDate}\n${msgFull}`;
+                    badge.onclick = () => window.open(commitUrl, '_blank');
+                }
+
+                // 頁尾
+                const fc = document.getElementById('footer-commit');
+                const ft = document.getElementById('footer-deploy-time');
+                if (fc) fc.innerHTML = `<a href="${commitUrl}" target="_blank" class="hover:text-blue-500 transition-colors">#${sha}</a> · ${msgFull.substring(0, 30)}${msgFull.length > 30 ? '…' : ''}`;
+                if (ft) ft.innerText = `部署：${fmtDate}`;
+
+            } catch(e) {
+                const tag = document.getElementById('version-tag');
+                if (tag) tag.innerText = 'V1.9.6';
+                const fc  = document.getElementById('footer-commit');
+                if (fc) fc.innerText = '版本資訊無法取得';
+            }
+        }
+
+        window.onload = () => {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            fetchData();
+            fetchVersionInfo();
+            document.getElementById('refresh-btn').onclick = fetchData;
+            window.addEventListener('resize', () => { if(myChart) myChart.resize(); updateChartUI(); });
         };
     </script>
 </body>
