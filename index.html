@@ -633,7 +633,7 @@
                 { ...sliderBase, type: 'slider', xAxisIndex: 0, bottom: 0, height: 30 },
                 { ...sliderBase, type: 'slider', yAxisIndex: 0, left: 0, width: 26, show: axisState.lIdx },
                 { ...sliderBase, type: 'slider', yAxisIndex: 1, left: axisState.lIdx ? 44 : 0, width: 26, show: axisState.lTot },
-                { ...sliderBase, type: 'slider', yAxisIndex: 2, right: 0, width: 26, show: axisState.rPrf },
+                { ...sliderBase, type: 'slider', yAxisIndex: 2, right: 0, width: 26, show: axisState.rPrf, filterMode: 'none', startValue: -1, endValue: 10 },
                 { ...sliderBase, type: 'slider', yAxisIndex: 3, right: axisState.rPrf ? 44 : 0, width: 26, show: axisState.rTmv },
                 { type: 'inside', xAxisIndex: 0, moveOnMouseMove: !isMobile, zoomOnMouseWheel: !isMobile }
             ];
@@ -713,7 +713,7 @@
                 const st = globalData.yTotal.slice(si, ei + 1).filter(v => v !== null);
                 if (st.length > 0) batch.push({ dataZoomIndex: 2, start: getPct(Math.min(...st)*0.95, 0, 5000), end: getPct(Math.max(...st)*1.05, 0, 5000) });
             }
-            if (axisState.rPrf) batch.push({ dataZoomIndex: 3, start: 0, end: 100 });
+            if (axisState.rPrf) batch.push({ dataZoomIndex: 3, startValue: -1, endValue: 10 });
             if (axisState.rTmv) {
                 const subT = [...sw, ...sf];
                 if (subT.length > 0) {
@@ -749,7 +749,7 @@
                 },
                 xAxis: { type: 'category', data: data.x, boundaryGap: false, axisLabel: { color: '#94a3b8', fontSize: 10, rotate: 30, fontFamily: 'Arial' }, axisLine: { lineStyle: { color: '#f1f5f9' } } },
                 yAxis: [ { type: 'value', name: '期指', position: 'left' }, { type: 'value', name: '總點', position: 'left' }, { type: 'value', name: '獲利%', position: 'right' }, { type: 'value', name: '時價', position: 'right' } ],
-                dataZoom: [ { type: 'slider', xAxisIndex: 0 }, { type: 'slider', yAxisIndex: 0 }, { type: 'slider', yAxisIndex: 1 }, { type: 'slider', yAxisIndex: 2 }, { type: 'slider', yAxisIndex: 3 }, { type: 'inside', xAxisIndex: 0 } ],
+                dataZoom: [ { type: 'slider', xAxisIndex: 0 }, { type: 'slider', yAxisIndex: 0 }, { type: 'slider', yAxisIndex: 1 }, { type: 'slider', yAxisIndex: 2, filterMode: 'none', startValue: -1, endValue: 10 }, { type: 'slider', yAxisIndex: 3 }, { type: 'inside', xAxisIndex: 0 } ],
                 series: [
                     { type: 'line', data: [], markArea: { silent: true, data: markAreas }, silent: true },
                     { name: '獲利率+', type: 'line', yAxisIndex: 2, data: data.yProfit.map(v => (v !== null && v >= 0) ? v : null), smooth: true, showSymbol: false, lineStyle: { width: 0 }, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(225, 29, 72, 0.7)' }, { offset: 1, color: 'rgba(225, 29, 72, 0.05)' }]) }, z: 1 },
