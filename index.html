@@ -713,7 +713,7 @@
                 const st = globalData.yTotal.slice(si, ei + 1).filter(v => v !== null);
                 if (st.length > 0) batch.push({ dataZoomIndex: 2, start: getPct(Math.min(...st)*0.95, 0, 5000), end: getPct(Math.max(...st)*1.05, 0, 5000) });
             }
-            if (axisState.rPrf && spr.length > 0) batch.push({ dataZoomIndex: 3, start: getPct(Math.min(...spr)-0.1, -1, 10), end: getPct(Math.max(...spr)+0.1, -1, 10) });
+            if (axisState.rPrf) batch.push({ dataZoomIndex: 3, start: 0, end: 100 });
             if (axisState.rTmv) {
                 const subT = [...sw, ...sf];
                 if (subT.length > 0) {
