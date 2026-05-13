@@ -614,7 +614,8 @@
                 return { symbol: 'circle', symbolSize: 0, label: { show: true, fontSize: 10 }, data: [{ type: 'max', label: { color: name.includes('週三') ? '#ef4444' : (name.includes('週五') ? '#10b981' : '#64748b'), position: 'top', formatter: (p) => Math.round(p.value).toLocaleString() } }] };
             };
             const seriesConfig = [
-                { name: '獲利率', data: axisState.rPrf ? globalData.yProfit : [], markPoint: axisState.rPrf ? getMarkPoint('獲利率', 'profit') : { data: [] } },
+                { name: '獲利率+', data: axisState.rPrf ? globalData.yProfit.map(v => (v !== null && v >= 0) ? v : null) : [], markPoint: axisState.rPrf ? { symbol: 'circle', symbolSize: 0, label: { show: true, fontSize: 10, fontWeight: 'bold' }, data: [{ type: 'max', label: { color: '#22d3ee', position: 'top', formatter: '{c}%', offset: [0, -5] } }] } : { data: [] } },
+                { name: '獲利率-', data: axisState.rPrf ? globalData.yProfit.map(v => (v !== null && v < 0) ? v : null) : [], markPoint: axisState.rPrf ? { symbol: 'circle', symbolSize: 0, label: { show: true, fontSize: 10, fontWeight: 'bold' }, data: [{ type: 'min', label: { color: '#ec4899', position: 'bottom', formatter: '{c}%', offset: [0, 5] } }] } : { data: [] } },
                 { name: '週三時價', data: axisState.rTmv ? globalData.yTimeWed : [], markPoint: axisState.rTmv ? getMarkPoint('週三時價', 'val') : { data: [] } },
                 { name: '週五時價', data: axisState.rTmv ? globalData.yTimeFri : [], markPoint: axisState.rTmv ? getMarkPoint('週五時價', 'val') : { data: [] } },
                 { name: '期指', data: axisState.lIdx ? globalData.yPrice : [], markPoint: axisState.lIdx ? getMarkPoint('期指', 'idx') : { data: [] } },
@@ -623,7 +624,7 @@
             const yAxes = [
                 { type: 'value', name: '期指', position: 'left', offset: 0, show: axisState.lIdx, axisLabel: { color: '#2563eb', fontWeight: 'bold', fontSize: 10, fontFamily: 'Arial' }, splitLine: { lineStyle: { type: 'dashed', color: '#f1f5f9' } }, min: 'dataMin', max: 'dataMax', scale: true },
                 { type: 'value', name: '總點', position: 'left', offset: axisState.lIdx ? 50 : 0, show: axisState.lTot, axisLabel: { color: '#475569', fontWeight: 'bold', fontSize: 10, fontFamily: 'Arial' }, splitLine: { show: false }, min: 0, max: 5000 },
-                { type: 'value', name: '獲利%', position: 'right', offset: 0, show: axisState.rPrf, axisLabel: { color: '#e11d48', fontWeight: 'bold', fontSize: 10, fontFamily: 'Arial' }, splitLine: { show: false }, min: -1, max: 5 },
+                { type: 'value', name: '獲利%', position: 'right', offset: 0, show: axisState.rPrf, axisLabel: { color: '#e11d48', fontWeight: 'bold', fontSize: 10, fontFamily: 'Arial' }, splitLine: { show: false }, min: -1, max: 10 },
                 { type: 'value', name: '時價', position: 'right', offset: axisState.rPrf ? 50 : 0, show: axisState.rTmv, axisLabel: { color: '#9333ea', fontWeight: 'bold', fontSize: 10, fontFamily: 'Arial' }, splitLine: { show: false } }
             ];
             const isMobile = window.innerWidth < 768;
@@ -704,7 +705,7 @@
                 const st = globalData.yTotal.slice(si, ei + 1).filter(v => v !== null);
                 if (st.length > 0) batch.push({ dataZoomIndex: 2, start: getPct(Math.min(...st)*0.95, 0, 5000), end: getPct(Math.max(...st)*1.05, 0, 5000) });
             }
-            if (axisState.rPrf && spr.length > 0) batch.push({ dataZoomIndex: 3, start: getPct(Math.min(...spr)-0.1, -1, 5), end: getPct(Math.max(...spr)+0.1, -1, 5) });
+            if (axisState.rPrf && spr.length > 0) batch.push({ dataZoomIndex: 3, start: getPct(Math.min(...spr)-0.1, -1, 10), end: getPct(Math.max(...spr)+0.1, -1, 10) });
             if (axisState.rTmv) {
                 const subT = [...sw, ...sf];
                 if (subT.length > 0) {
@@ -734,7 +735,7 @@
                     formatter: function(params) {
                         let res = `<div class="font-bold mb-1">${params[0].axisValue}</div>`;
                         let hasVal = false;
-                        params.forEach(p => { if (p.value === null || p.value === undefined || (Array.isArray(p.data) && p.data.length === 0)) return; let val = p.value; if (p.seriesName === '獲利率') val = val.toFixed(2) + '%'; else val = Math.round(val).toLocaleString(); res += `<div class="flex justify-between gap-4 mt-0.5"><span>${p.marker} ${p.seriesName}</span><span class="font-bold">${val}</span></div>`; hasVal = true; });
+                        params.forEach(p => { if (p.value === null || p.value === undefined || (Array.isArray(p.data) && p.data.length === 0)) return; let val = p.value; const isPrf = p.seriesName === '獲利率+' || p.seriesName === '獲利率-'; if (isPrf) val = val.toFixed(2) + '%'; else val = Math.round(val).toLocaleString(); const displayName = isPrf ? '獲利率' : p.seriesName; res += `<div class="flex justify-between gap-4 mt-0.5"><span>${p.marker} ${displayName}</span><span class="font-bold">${val}</span></div>`; hasVal = true; });
                         return hasVal ? res : "";
                     }
                 },
@@ -743,7 +744,8 @@
                 dataZoom: [ { type: 'slider', xAxisIndex: 0 }, { type: 'slider', yAxisIndex: 0 }, { type: 'slider', yAxisIndex: 1 }, { type: 'slider', yAxisIndex: 2 }, { type: 'slider', yAxisIndex: 3 }, { type: 'inside', xAxisIndex: 0 } ],
                 series: [
                     { type: 'line', data: [], markArea: { silent: true, data: markAreas }, silent: true },
-                    { name: '獲利率', type: 'line', yAxisIndex: 2, data: data.yProfit, smooth: true, showSymbol: false, lineStyle: { width: 0 }, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(225, 29, 72, 0.7)' }, { offset: 1, color: 'rgba(225, 29, 72, 0.05)' }]) }, z: 1 },
+                    { name: '獲利率+', type: 'line', yAxisIndex: 2, data: data.yProfit.map(v => (v !== null && v >= 0) ? v : null), smooth: true, showSymbol: false, lineStyle: { width: 0 }, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(225, 29, 72, 0.7)' }, { offset: 1, color: 'rgba(225, 29, 72, 0.05)' }]) }, z: 1 },
+                    { name: '獲利率-', type: 'line', yAxisIndex: 2, data: data.yProfit.map(v => (v !== null && v < 0) ? v : null), smooth: true, showSymbol: false, lineStyle: { width: 0 }, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(134, 239, 172, 0.7)' }, { offset: 1, color: 'rgba(134, 239, 172, 0.05)' }]) }, z: 1 },
                     { name: '週三時價', type: 'line', yAxisIndex: 3, data: data.yTimeWed, smooth: true, showSymbol: false, lineStyle: { width: 2.2, color: '#ef4444', shadowBlur: 3 }, z: 4 },
                     { name: '週五時價', type: 'line', yAxisIndex: 3, data: data.yTimeFri, smooth: true, showSymbol: false, lineStyle: { width: 2.2, color: '#10b981', shadowBlur: 3 }, z: 4 },
                     { name: '期指', type: 'line', yAxisIndex: 0, data: data.yPrice, smooth: true, showSymbol: false, lineStyle: { width: 2.2, color: '#2563eb', shadowBlur: 3 }, z: 5 },
