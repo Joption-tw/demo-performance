@@ -628,7 +628,15 @@
                 { type: 'value', name: '時價', position: 'right', offset: axisState.rPrf ? 50 : 0, show: axisState.rTmv, axisLabel: { color: '#9333ea', fontWeight: 'bold', fontSize: 10, fontFamily: 'Arial' }, splitLine: { show: false } }
             ];
             const isMobile = window.innerWidth < 768;
-            const dZoom = [ { type: 'slider', xAxisIndex: 0, bottom: 0, height: 20 }, { type: 'slider', yAxisIndex: 0, left: 0, width: 18, show: axisState.lIdx }, { type: 'slider', yAxisIndex: 1, left: axisState.lIdx ? 40 : 0, width: 18, show: axisState.lTot }, { type: 'slider', yAxisIndex: 2, right: 0, width: 18, show: axisState.rPrf }, { type: 'slider', yAxisIndex: 3, right: axisState.rPrf ? 40 : 0, width: 18, show: axisState.rTmv }, { type: 'inside', xAxisIndex: 0, moveOnMouseMove: !isMobile, zoomOnMouseWheel: !isMobile } ];
+            const sliderBase = { handleSize: '140%', handleStyle: { color: '#2563eb', borderColor: '#1d4ed8', borderWidth: 2 }, moveHandleSize: 10, moveHandleStyle: { color: '#cbd5e1', borderColor: '#94a3b8' }, emphasis: { moveHandleStyle: { color: '#94a3b8' }, handleStyle: { color: '#1d4ed8' } }, brushSelect: false, showDetail: false };
+            const dZoom = [
+                { ...sliderBase, type: 'slider', xAxisIndex: 0, bottom: 0, height: 30 },
+                { ...sliderBase, type: 'slider', yAxisIndex: 0, left: 0, width: 26, show: axisState.lIdx },
+                { ...sliderBase, type: 'slider', yAxisIndex: 1, left: axisState.lIdx ? 44 : 0, width: 26, show: axisState.lTot },
+                { ...sliderBase, type: 'slider', yAxisIndex: 2, right: 0, width: 26, show: axisState.rPrf },
+                { ...sliderBase, type: 'slider', yAxisIndex: 3, right: axisState.rPrf ? 44 : 0, width: 26, show: axisState.rTmv },
+                { type: 'inside', xAxisIndex: 0, moveOnMouseMove: !isMobile, zoomOnMouseWheel: !isMobile }
+            ];
             myChart.setOption({ textStyle: { fontFamily: 'Arial' }, grid: { left: (leftAxesCount * 55) + 15, right: (rightAxesCount * 55) + 15, top: '8%', bottom: '15%' }, yAxis: yAxes, dataZoom: dZoom, series: seriesConfig.map(s => ({ name: s.name, data: s.data, markPoint: s.markPoint })) });
             if (currentSessionIdx !== -1) selectSession(currentSessionIdx);
         }
