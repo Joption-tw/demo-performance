@@ -328,6 +328,19 @@
         let currentSessionIdx = -1;
         let axisState = { lIdx: false, lTot: true, rPrf: true, rTmv: true };
 
+        // 記住圖表顯示設定（哪些軸打開），重新整理後沿用上次看的樣子；只存在這台瀏覽器
+        const CHART_PREF_KEY = 'joption-chart-pref';
+        function saveChartPref() {
+            try { localStorage.setItem(CHART_PREF_KEY, JSON.stringify({ axisState })); } catch (e) {}
+        }
+        (function loadChartPref() {
+            try {
+                const p = JSON.parse(localStorage.getItem(CHART_PREF_KEY) || 'null');
+                if (!p) return;
+                Object.keys(axisState).forEach(k => { if (p.axisState && typeof p.axisState[k] === 'boolean') axisState[k] = p.axisState[k]; });
+            } catch (e) {}
+        })();
+
         const rowRanges = [
             { label: '周三晚', start: 2, end: 419, type: 'night' }, 
             { label: '週四早', start: 420, end: 569, type: 'day' },   
@@ -687,6 +700,7 @@
 
         function toggleAxis(key) {
             axisState[key] = !axisState[key];
+            saveChartPref();
             updateChartUI();
         }
 
